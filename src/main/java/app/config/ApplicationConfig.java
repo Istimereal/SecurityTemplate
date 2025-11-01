@@ -1,12 +1,12 @@
 package app.config;
 
-import app.controllers.E1Controller;
-import app.controllers.E2Controller;
-import app.daos.D1DAO;
-import app.daos.E2DAO;
-import app.exceptions.ApiException;
-import app.routes.E1Routes;
-import app.routes.E2Routes;
+//import app.controllers.E1Controller;
+//import app.controllers.E2Controller;
+//import app.daos.D1DAO;
+//import app.daos.E2DAO;
+//import app.exceptions.ApiException;
+//import app.routes.E1Routes;
+//import app.routes.E2Routes;
 import app.routes.Routes;
 import app.routes.SecurityRoutes;
 import app.security.SecurityController;
@@ -25,7 +25,7 @@ public class ApplicationConfig {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationConfig.class);
     private static final ObjectMapper jsonMapper = new ObjectMapper();
 
-    public static Javalin startServer(int port, EntityManagerFactory emf) {
+  /*  public static Javalin startServer(int port, EntityManagerFactory emf) {
 
         // Init security + routes
 
@@ -42,7 +42,7 @@ public class ApplicationConfig {
         E1Routes E1Routes = new E1Routes(E1Controller);
         E2Routes E2Routes = new E2Routes(E2Controller);
 
-        Routes routes = new Routes(E1Routes, E2Routes);
+       // Routes routes = new Routes(E1Routes, E2Routes);
 
         Javalin app = Javalin.create(config -> {
             config.showJavalinBanner = false;
@@ -59,8 +59,8 @@ public class ApplicationConfig {
         app.get("/", ctx -> ctx.json(Map.of("status", "API is running ✅")));
 
         // Security filters (kører før matched routes)
-        app.beforeMatched(securityController::authenticate);
-        app.beforeMatched(securityController::authorize);
+        app.beforeMatched(securityController.authenticate());
+        app.beforeMatched(securityController.authorize());
 
         // CORS + exception handling
         setCORS(app);
@@ -73,7 +73,7 @@ public class ApplicationConfig {
 
         app.start(port);
         return app;
-    }
+    }  */
 
     private static void setCORS(Javalin app) {
         app.before(ApplicationConfig::setCorsHeaders);
@@ -87,7 +87,7 @@ public class ApplicationConfig {
         ctx.header("Access-Control-Allow-Credentials", "true");
     }
     //ændringer
-    private static void setGeneralExceptionHandling(Javalin app) {
+ /*  private static void setGeneralExceptionHandling(Javalin app) {
         app.exception(Exception.class, (e, ctx) -> {
             int statusCode = (e instanceof ApiException apiEx) ? apiEx.getStatusCode() : 500;
             String message = (e instanceof ApiException) ? e.getMessage() : "Internal server error";
@@ -101,7 +101,7 @@ public class ApplicationConfig {
             ctx.json(on);
             ctx.status(statusCode);
         });
-    }
+    }  */
     private static void beforeFilter(Javalin app) {
         app.before(ctx -> {
             // Debug-request headers, valgfrit

@@ -1,22 +1,26 @@
 package app.routes;
 
+import app.controllers.TController;
+import app.controllers.T2Controller;
 import io.javalin.apibuilder.EndpointGroup;
 
-import static io.javalin.apibuilder.ApiBuilder.get;
-import static io.javalin.apibuilder.ApiBuilder.path;
+import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Routes {
- //   private final PoemRoutes poemRoutes;
 
- /*   public Routes(PoemRoutes poemRoutes) {
-        this.poemRoutes = poemRoutes;
-    } */
+  //  private final TRoutes TRoutes;
+  //  private final T2Routes T2Routes;
 
-  /*  public EndpointGroup getRoutes(){
+/*    public Routes(TRoutes  TRoutes, T2Routes T2Routes) {
+        this.TRoutes = TRoutes;
+        this.T2Routes = T2Routes;
+    }  */
+
+    public EndpointGroup getEndpoints() {
 
         return () -> {
-            get("/", ctx -> ctx.result("Hello World"));
-            path("/poem", poemRoutes.getRoutes());
+        //    path("/Ts", TRoutes.getTRoutes());
+         //   path("/T2s", T2Routes.getT2Routes());
         };
-    }  */
+    }
 }
