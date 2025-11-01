@@ -1,8 +1,8 @@
 package app.config;
 
 //import app.entities.;
-import app.entities.E2;
-import app.entities.E2Id;
+//import app.entities.E2;
+//import app.entities.E2Id;
 import app.security.Role;
 import app.security.User;
 import app.utils.Utils;
@@ -50,9 +50,9 @@ public class HibernateConfig {
     private static void getAnnotationConfiguration(Configuration configuration) {
         configuration.addAnnotatedClass(User.class);
         configuration.addAnnotatedClass(Role.class);
-        configuration.addAnnotatedClass(E2.class);
-        configuration.addAnnotatedClass(E1MT1Owner.class);
-        configuration.addAnnotatedClass(E2Id.class);
+    //    configuration.addAnnotatedClass(E2.class);
+     //   configuration.addAnnotatedClass(E1MT1Owner.class);
+      //  configuration.addAnnotatedClass(E2Id.class);
 
     }
 
@@ -89,7 +89,9 @@ public class HibernateConfig {
         return Utils.getPropertyValue("db.name", "properties-from-pom.properties");
     }
     private static Properties setBaseProperties(Properties props) {
-        props.put("hibernate.connection.driver_class", "org.postgresql.Driver");
+        if (!isTest) {
+            props.put("hibernate.connection.driver_class", "org.postgresql.Driver");
+        }
         props.put("hibernate.hbm2ddl.auto", "create");  // set to "update" when in production
         props.put("hibernate.current_session_context_class", "thread");
         props.put("hibernate.show_sql", "false");
