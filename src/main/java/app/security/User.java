@@ -15,7 +15,6 @@ import java.util.Set;
 @Setter
 @Getter
 @Entity
-@NoArgsConstructor
 @Table(name="users")
 public class User implements ISecurityUser{
     @Id
@@ -27,8 +26,10 @@ public class User implements ISecurityUser{
     @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
     private Set<Role> roles = new HashSet<>();
 
+    public User() { }
+
     public User(String username, String password){
-        this.username = username;
+        this.username = username.toLowerCase();
         String hashed = BCrypt.hashpw(password, BCrypt.gensalt());
         this.password = hashed;
     }
@@ -41,12 +42,11 @@ public class User implements ISecurityUser{
     @Override
     public void addRole(Role role) {
         roles.add(role);
-        // her kaldes IKKE role.getUsers().add(this); (kun den ene side opdateres)
+        role.getUsers().add(this);
     }
 
     @Override
     public void removeRole(Role role) {
         this.roles.remove(role);
-
     }
 }
