@@ -1,6 +1,6 @@
 package app.security;
 
-import jakarta.persistence.*;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,7 +18,7 @@ public class Role {
     private String roleName;
 
     public Role(String roleName) {
-        this.roleName = roleName;
+        this.roleName = roleName.toUpperCase();
     }
 
     @ManyToMany(fetch = FetchType.EAGER)

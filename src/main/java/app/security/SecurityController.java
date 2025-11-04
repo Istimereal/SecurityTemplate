@@ -69,21 +69,20 @@ public class SecurityController implements ISecurityController {
     @Override
     public Handler register() {
         return ctx -> {
+            User user = ctx.bodyAsClass(User.class);
+            String username = user.getUsername();
+            String password = user.getPassword();
 
             try {
-                User user = ctx.bodyAsClass(User.class);
-                String username = user.getUsername();
-                String password = user.getPassword();
 
-                if(username.contains("admin")){
+                if(username.toLowerCase().contains("admin")){
                     securityDAO.createUser(username, password);
-                    securityDAO.addUserRole(username,"Admin");
+                    securityDAO.addUserRole(username,"ADMIN");
                 }else {
                     securityDAO.createUser(username, password);
-                    securityDAO.addUserRole(username, "User");
+                    securityDAO.addUserRole(username, "USER");
                 }
                 User verified = securityDAO.getVerifiedUser(username, password);
-
                 Set<String> stringRoles = verified.getRoles()
                         .stream()
                         .map(role->role.getRoleName())
@@ -112,8 +111,10 @@ public class SecurityController implements ISecurityController {
                 ctx.status(200);
                 return;
             }
+
             // If the endpoint is not protected with roles or is open to ANYONE role, then skip
-            Set<String> allowedRoles = ctx.routeRoles().stream().map(role -> role.toString().toUpperCase()).collect(Collectors.toSet());
+            Set<String> allowedRoles = ctx.routeRoles().stream().map(role -> role.toString().toUpperCase()).
+                    collect(Collectors.toSet());
             if (isOpenEndpoint(allowedRoles))
                 return;
 
@@ -122,6 +123,7 @@ public class SecurityController implements ISecurityController {
             ctx.attribute("user", verifiedTokenUser); // -> ctx.attribute("user") in ApplicationConfig beforeMatched filter
         };
     }
+
     private UserDTO validateAndGetUserFromToken(Context ctx) throws Exception {
         try {
             String token = getToken(ctx);
@@ -164,32 +166,36 @@ public class SecurityController implements ISecurityController {
     }
     @Override
     public Handler authorize() {
-        return (Context ctx) -> {
-            Set<String> allowedRoles = ctx.routeRoles()
-                    .stream()
-                    .map(role -> role.toString().toUpperCase())
+        return ctx -> {
+            var allowedRoles = ctx.routeRoles().stream()
+                    .map(r -> r.toString().toUpperCase())
                     .collect(Collectors.toSet());
 
-            // 1. Check if the endpoint is open to all (either by not having any roles or having the ANYONE role set
-            if (isOpenEndpoint(allowedRoles))
-                return;
-            // 2. Get user and ensure it is not null
-            UserDTO user = ctx.attribute("user");
-            if (user == null) {
-                throw new ForbiddenResponse("No user was added from the token");
+            // VIGTIGT: eksplicit type (eller cast) i stedet for var
+            dk.bugelhartmann.UserDTO user = ctx.attribute("user");
+            // Alternativt: UserDTO user = (UserDTO) ctx.attribute("user");
+
+            System.out.println("authorize(): allowedRoles=" + allowedRoles);
+            System.out.println("authorize(): user=" + user);
+
+            if (allowedRoles.isEmpty() || allowedRoles.contains("ANYONE")) return;
+            if (user == null) throw new ForbiddenResponse("No user was added from the token");
+
+            boolean hasRole = user.getRoles().stream()
+                    .map(String::toUpperCase)
+                    .anyMatch(allowedRoles::contains);
+
+            if (!hasRole) {
+                throw new ForbiddenResponse("User roles " + user.getRoles() + " not in " + allowedRoles);
             }
-            // 3. See if any role matches
-            if (!userHasAllowedRole(user, allowedRoles))
-                throw new ForbiddenResponse("User was not authorized with roles: " + user.getRoles() + ". Needed roles are: " + allowedRoles);
         };
-    }
-    private static boolean userHasAllowedRole(UserDTO user, Set<String> allowedRoles) {
-        return user.getRoles().stream()
-                .anyMatch(role -> allowedRoles.contains(role.toUpperCase()));
     }
 
     public String createToken(dk.bugelhartmann.UserDTO user) throws Exception {
         try {
+            System.out.println("createToken user: " + user.getUsername() + ", roles= " + user.getRoles());
+
+            System.out.println("1! createToken user ER" +  user.getUsername() + user.getPassword());
             String ISSUER;
             String TOKEN_EXPIRE_TIME;
             String SECRET_KEY;
@@ -205,10 +211,16 @@ public class SecurityController implements ISecurityController {
                 ISSUER = "Thomas Hartmann";
                 TOKEN_EXPIRE_TIME = "1800000";
                 SECRET_KEY = Utils.getPropertyValue("SECRET_KEY", "config.properties");
+                System.out.println("SECRET_KEY hentet = " + SECRET_KEY);
                 System.out.println("createToken developer: 1 B.");
+
             }
             System.out.println("Creating Token 2");
-            String token = tokenSecurity.createToken(user, ISSUER, TOKEN_EXPIRE_TIME, SECRET_KEY);
+            UserDTO fixedUser = new UserDTO(
+                    user.getUsername(),
+                    user.getRoles().stream().map(String::toUpperCase).collect(Collectors.toSet())
+            );
+            String token = tokenSecurity.createToken(fixedUser, ISSUER, TOKEN_EXPIRE_TIME, SECRET_KEY);
 
             System.out.println("Created token: " + token);
             return token;
@@ -216,7 +228,7 @@ public class SecurityController implements ISecurityController {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Creating Token 1 c error");
-            throw new Exception("Could not create token", e);  // ✅ korrekt syntaks
+            throw new Exception("Could not create token", e);
         }
     }
 
@@ -229,7 +241,13 @@ public class SecurityController implements ISecurityController {
         try {
             if (tokenSecurity.tokenIsValid(token, SECRET) && tokenSecurity.tokenNotExpired(token)) {
                 System.out.println("Login Verified Token 2");
-                return tokenSecurity.getUserWithRolesFromToken(token);
+
+                UserDTO dto = tokenSecurity.getUserWithRolesFromToken(token);
+                Set<String> normalizedRoles = dto.getRoles().stream()
+                        .map(String::toUpperCase)
+                        .collect(Collectors.toSet());
+
+                return new UserDTO(dto.getUsername(), normalizedRoles);
             } else {
                 System.out.println("login verifyToken : Not authorized ");
                 throw new NotAuthorizedException(403, "Token is not valid");
