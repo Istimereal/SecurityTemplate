@@ -44,22 +44,13 @@ public class SecurityController implements ISecurityController {
                         .collect(Collectors.toSet());
                 UserDTO verifiedUserDTO = new UserDTO(verifiedUser.getUsername(), stringRoles);
 
-                System.out.println("login 1.3 verifiedUserDTO username: " + verifiedUserDTO.getUsername());
-                System.out.println("login 1.3 verifiedUserDTO passsword: " + verifiedUserDTO.getPassword());
-                System.out.println("login 1.3 verifiedUserDTO roles: " + verifiedUserDTO.getRoles());
-
-                System.out.println("login 1.3");
                 String token = createToken(verifiedUserDTO);
-                System.out.println("login 1.4");
-             /*   ObjectNode on = objectMapper
-                        .createObjectNode()
-                        .put("msg","Succesfull login for user: "+verified.getUsername());  */
-                System.out.println("login 1.5");
+
                 ctx.status(HttpStatus.OK).json(Map.of("username", verifiedUserDTO.getUsername(), "token", token));
                 System.out.println("login 1.6");
             } catch(ValidationException ex){
                 //     ObjectNode on = objectMapper.createObjectNode().put("msg","login failed. Wrong username or password");
-                System.out.println("login validation exception 1");
+
                 ctx.status(HttpStatus.UNAUTHORIZED).json(Map.of("status", HttpStatus.UNAUTHORIZED.getCode(), "msg", "login failed. Wrong username or password"));
                 //     ctx.json(on).status(401);
             }
@@ -173,10 +164,6 @@ public class SecurityController implements ISecurityController {
 
             // VIGTIGT: eksplicit type (eller cast) i stedet for var
             dk.bugelhartmann.UserDTO user = ctx.attribute("user");
-            // Alternativt: UserDTO user = (UserDTO) ctx.attribute("user");
-
-            System.out.println("authorize(): allowedRoles=" + allowedRoles);
-            System.out.println("authorize(): user=" + user);
 
             if (allowedRoles.isEmpty() || allowedRoles.contains("ANYONE")) return;
             if (user == null) throw new ForbiddenResponse("No user was added from the token");
@@ -195,7 +182,6 @@ public class SecurityController implements ISecurityController {
         try {
             System.out.println("createToken user: " + user.getUsername() + ", roles= " + user.getRoles());
 
-            System.out.println("1! createToken user ER" +  user.getUsername() + user.getPassword());
             String ISSUER;
             String TOKEN_EXPIRE_TIME;
             String SECRET_KEY;
@@ -211,25 +197,19 @@ public class SecurityController implements ISecurityController {
                 ISSUER = "Thomas Hartmann";
                 TOKEN_EXPIRE_TIME = "1800000";
                 SECRET_KEY = Utils.getPropertyValue("SECRET_KEY", "config.properties");
-                System.out.println("SECRET_KEY hentet = " + SECRET_KEY);
-                System.out.println("createToken developer: 1 B.");
 
             }
-            System.out.println("Creating Token 2");
             UserDTO fixedUser = new UserDTO(
                     user.getUsername(),
                     user.getRoles().stream().map(String::toUpperCase).collect(Collectors.toSet())
             );
             String token = tokenSecurity.createToken(fixedUser, ISSUER, TOKEN_EXPIRE_TIME, SECRET_KEY);
 
-            System.out.println("Created token: " + token);
             return token;
 
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("Creating Token 1 c error");
-            throw new Exception("Could not create token", e);
-        }
+            throw new Exception("Could not create token", e);}
     }
 
     public UserDTO verifyToken(String token) throws Exception {
@@ -237,10 +217,8 @@ public class SecurityController implements ISecurityController {
         String SECRET = IS_DEPLOYED
                 ? System.getenv("SECRET_KEY")
                 : Utils.getPropertyValue("SECRET_KEY", "config.properties");
-        System.out.println("Login Verifying Token 1");
         try {
             if (tokenSecurity.tokenIsValid(token, SECRET) && tokenSecurity.tokenNotExpired(token)) {
-                System.out.println("Login Verified Token 2");
 
                 UserDTO dto = tokenSecurity.getUserWithRolesFromToken(token);
                 Set<String> normalizedRoles = dto.getRoles().stream()
@@ -249,17 +227,13 @@ public class SecurityController implements ISecurityController {
 
                 return new UserDTO(dto.getUsername(), normalizedRoles);
             } else {
-                System.out.println("login verifyToken : Not authorized ");
                 throw new NotAuthorizedException(403, "Token is not valid");
             }
 
         } catch (ParseException | NotAuthorizedException e) {
             e.printStackTrace();
-            System.out.println("login verifyToken : PerseException ");
             throw new Exception("Unauthorized. Could not verify token", e);
-
         } catch (TokenVerificationException tve) {
-            System.out.println("login verifyToken : TokenVerificationException last ");
             throw new Exception("Unauthorized. Could not verify token", tve);
         }
     }
