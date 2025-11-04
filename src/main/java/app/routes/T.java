@@ -1,9 +1,5 @@
 package app.routes;
 
-import app.controllers.GuideController;
-import app.controllers.TripController;
-import app.dtos.TripDTO;
-import app.enums.Category;
 import app.security.SecurityController.Role;
 import app.service.TripConverters;
 import io.javalin.apibuilder.EndpointGroup;
