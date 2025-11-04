@@ -48,18 +48,19 @@ Content-Type: application/json
 
 > {% client.global.set("token", response.body.token); %}
 
-###  Get allGuides
-GET {{baseUrl}}/guides
+###  Get
+GET {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Get guideById
-GET {{baseUrl}}/guides/1
+### Get
+GET {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Create new guide
-POST {{baseUrl}}/trips/guides
+###
+POST {{baseUrl}}/
 Authorization: Bearer {{token}}
 Content-Type: application/json
+Accept: application/json
 
 {
   "name": "Jonas",
@@ -68,21 +69,18 @@ Content-Type: application/json
   "experienceInYears": 5
 }
 
-### Update existing guide
-PUT {{baseUrl}}/guides/1
+###
+PUT {{baseUrl}}
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
-{
-  "experienceInYears": 7
-}
 
-### Delete guide
-DELETE {{baseUrl}}/guides/1
+### Delete
+DELETE {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Create new trip
-POST {{baseUrl}}/trips
+###
+POST {{baseUrl}}/
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -95,8 +93,8 @@ Content-Type: application/json
   "category": "BEACH"
 }
 
-### Update trip
-PUT {{baseUrl}}/trips/1
+###
+PUT {{baseUrl}}/
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -104,34 +102,34 @@ Content-Type: application/json
   "price": 7000
 }
 
-### Add Guide to Trip
-PUT {{baseUrl}}/trips/1/guides/1
+###
+PUT {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Get all trips
-GET {{baseUrl}}/trips
+###
+GET {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Get trips by category
-GET {{baseUrl}}/trips?category=BEACH
+###
+GET {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Get trip by id
-GET {{baseUrl}}/trips/1
+###
+GET {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Get trip by id and packing list by trip Category (same as above just added feature)
-GET {{baseUrl}}/trips/1
+### Get
+GET {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Delete trip
-DELETE {{baseUrl}}/trips/1
+### Delete
+DELETE {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Get total price Guide by Trips
-GET {{baseUrl}}/trips/guides/totalprice
+### Get
+GET {{baseUrl}}/
 Authorization: Bearer {{token}}
 
-### Get packing weight
-GET {{baseUrl}}/trips/1/packing/weight
+### Get
+GET {{baseUrl}}/
 Authorization: Bearer {{token}}
